@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>TBH— The Big House Gym </title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="icon" type="image/x-icon" href="T B H.png">
+
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #08080E;
+    --surface: #101018;
+    --surface2: #16161F;
+    --border: #1E1E2E;
+    --text: #E4E4F0;
+    --muted: #55556A;
+    --accent: #FF4D00;
+    --font-display: 'Bebas Neue', sans-serif;
+    --font-body: 'DM Sans', sans-serif;
+    --radius: 14px;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-body);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: #2a2a3a; border-radius: 2px; }
+
+  /* ── HEADER ── */
+  header {
+    position: sticky; top: 0; z-index: 200;
+    background: rgba(8,8,14,.92);
+    backdrop-filter: blur(14px);
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 16px 20px;
+  }
+  .logo-wrap { display: flex; align-items: center; gap: 12px; }
+  .logo-icon {
+    width: 38px; height: 38px; border-radius: 10px;
+    background: rgba(255,77,0,.15);
+    border: 1.5px solid rgba(255,77,0,.4);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px;
+  }
+  .logo-title { font-family: var(--font-display); font-size: 22px; letter-spacing: 2px; color: #fff; }
+  .logo-sub { font-size: 10px; color: var(--muted); letter-spacing: 2px; text-transform: uppercase; margin-top: 1px; }
+  .header-today { text-align: right; }
+  .header-today-label { font-size: 10px; color: var(--muted); letter-spacing: 1px; text-transform: uppercase; }
+  .header-today-day { font-size: 13px; font-weight: 600; color: var(--accent); }
+
+  /* ── MAIN ── */
+  main { max-width: 680px; margin: 0 auto; padding: 24px 16px 100px; }
+
+  /* ── DAY SELECTOR ── */
+  .day-scroll {
+    display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px;
+    margin-bottom: 28px; -webkit-overflow-scrolling: touch;
+  }
+  .day-scroll::-webkit-scrollbar { height: 0; }
+  .day-btn {
+    flex-shrink: 0;
+    padding: 10px 14px;
+    border-radius: 12px;
+    border: 1.5px solid var(--border);
+    background: var(--surface);
+    color: var(--muted);
+    font-family: var(--font-body);
+    font-size: 11px; font-weight: 600;
+    letter-spacing: .5px;
+    text-transform: uppercase;
+    cursor: pointer;
+    position: relative;
+    transition: transform .18s, background .18s, color .18s, border-color .18s;
+  }
+  .day-btn:hover { transform: translateY(-2px); }
+  .day-btn.active {
+    border-color: var(--accent);
+    background: color-mix(in srgb, var(--accent) 15%, transparent);
+    color: var(--accent);
+  }
+  .day-btn .day-sublabel { font-size: 9px; opacity: .65; margin-top: 2px; }
+  .day-btn .done-dot {
+    position: absolute; top: -4px; right: -4px;
+    width: 13px; height: 13px; border-radius: 50%;
+    background: #00C853; border: 2px solid var(--bg);
+    font-size: 7px; display: flex; align-items: center; justify-content: center;
+    color: #000; font-weight: 800;
+    display: none;
+  }
+  .day-btn.workout-done .done-dot { display: flex; }
+
+  /* ── WORKOUT HEADER ── */
+  .workout-header { margin-bottom: 22px; }
+  .workout-meta { font-size: 10px; color: var(--muted); letter-spacing: 2px; text-transform: uppercase; margin-bottom: 4px; }
+  .workout-title-row { display: flex; align-items: flex-end; justify-content: space-between; margin-bottom: 12px; }
+  .workout-title { font-family: var(--font-display); font-size: 44px; letter-spacing: 3px; color: #fff; line-height: 1; }
+  .workout-count { text-align: right; }
+  .workout-count-num { font-family: var(--font-display); font-size: 32px; color: var(--accent); }
+  .workout-count-denom { font-size: 15px; color: #333; }
+  .workout-count-label { font-size: 10px; color: var(--muted); letter-spacing: 1px; text-transform: uppercase; }
+  .progress-bar { height: 3px; background: var(--border); border-radius: 2px; overflow: hidden; }
+  .progress-fill { height: 100%; border-radius: 2px; transition: width .4s ease; }
+
+  /* ── EXERCISE CARD ── */
+  .ex-list { display: flex; flex-direction: column; gap: 12px; }
+  .ex-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 18px 20px;
+    transition: transform .22s, background .22s, border-color .22s;
+    position: relative; overflow: hidden;
+  }
+  .ex-card:hover { transform: translateY(-2px); }
+  .ex-card.done {
+    background: color-mix(in srgb, var(--accent) 8%, var(--surface));
+    border-color: color-mix(in srgb, var(--accent) 35%, transparent);
+  }
+  .ex-card-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 14px; }
+  .ex-info { flex: 1; }
+  .ex-muscle-tag {
+    display: inline-block;
+    font-size: 10px; font-weight: 700;
+    letter-spacing: 1px; text-transform: uppercase;
+    padding: 2px 9px; border-radius: 5px;
+    margin-bottom: 5px;
+  }
+  .ex-name { font-size: 16px; font-weight: 600; margin-bottom: 2px; transition: color .2s; }
+  .ex-card.done .ex-name { color: var(--accent); }
+  .ex-sets-info { font-size: 12px; color: var(--muted); }
+  .ex-actions { display: flex; gap: 8px; flex-shrink: 0; }
+  .icon-btn {
+    width: 38px; height: 38px; border-radius: 10px;
+    border: none; background: var(--surface2);
+    color: #666; font-size: 14px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    transition: background .18s, color .18s, transform .15s;
+  }
+  .icon-btn:hover { transform: scale(1.08); }
+  .icon-btn.active { color: #000; }
+  .icon-btn.check-btn.done { color: #000; }
+
+  /* ── VIDEO ── */
+  .video-wrap {
+    border-radius: 10px; overflow: hidden;
+    background: #000; aspect-ratio: 16/9;
+    margin-bottom: 14px;
+    display: none;
+  }
+  .video-wrap.open { display: block; }
+  .video-wrap iframe { width: 100%; height: 100%; border: none; display: block; }
+
+  /* ── TIP ── */
+  .ex-tip {
+    font-size: 12px; color: #666;
+    background: #0C0C14;
+    border-radius: 8px;
+    padding: 8px 12px;
+    margin-bottom: 14px;
+    border-left: 2px solid transparent;
+  }
+
+  /* ── SET TRACKER ── */
+  .set-label {
+    font-size: 11px; color: #444;
+    letter-spacing: 1px; text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+  .set-label span { margin-left: 6px; }
+  .set-dots { display: flex; gap: 8px; flex-wrap: wrap; }
+  .set-dot {
+    width: 44px; height: 44px; border-radius: 10px;
+    background: var(--surface2);
+    border: 1.5px solid #2A2A3E;
+    color: #555; font-size: 13px; font-weight: 700;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 2px; cursor: pointer;
+    transition: background .15s, color .15s, border-color .15s, transform .12s;
+  }
+  .set-dot:hover { transform: scale(1.1); }
+  .set-dot.done { color: #000; }
+  .set-dot .check-mark { font-size: 8px; display: none; }
+  .set-dot.done .check-mark { display: block; }
+
+  /* ── COMPLETE BTN ── */
+  .complete-section { margin-top: 28px; }
+  .complete-btn {
+    width: 100%; padding: 19px;
+    border-radius: var(--radius); border: none;
+    font-family: var(--font-display);
+    font-size: 20px; letter-spacing: 3px;
+    cursor: pointer;
+    transition: transform .18s, opacity .18s;
+  }
+  .complete-btn:not(:disabled):hover { transform: scale(1.02); }
+  .complete-btn:disabled { cursor: not-allowed; background: var(--surface2); color: #333; }
+  .complete-banner {
+    text-align: center; padding: 24px;
+    background: color-mix(in srgb, var(--accent) 12%, transparent);
+    border: 1px solid color-mix(in srgb, var(--accent) 35%, transparent);
+    border-radius: var(--radius);
+    display: none;
+  }
+  .complete-banner.show { display: block; animation: popIn .3s ease; }
+  .complete-banner .trophy { font-size: 32px; margin-bottom: 8px; }
+  .complete-banner .done-title { font-family: var(--font-display); font-size: 28px; letter-spacing: 2px; }
+  .complete-banner .done-sub { font-size: 13px; color: #666; margin-top: 6px; }
+  @keyframes popIn { from { transform: scale(.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+  /* ── WEEKLY OVERVIEW ── */
+  .weekly-section {
+    margin-top: 32px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px;
+  }
+  .weekly-label { font-size: 11px; color: var(--muted); letter-spacing: 2px; text-transform: uppercase; margin-bottom: 14px; }
+  .weekly-grid { display: flex; gap: 6px; }
+  .week-cell { flex: 1; text-align: center; }
+  .week-bar {
+    height: 36px; border-radius: 6px;
+    background: var(--surface2);
+    margin-bottom: 4px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 700; color: #333;
+    border: 1px solid transparent;
+    transition: background .3s, color .3s;
+  }
+  .week-bar.is-today { border-color: rgba(255,77,0,.4); }
+  .week-bar.is-done { color: #000; }
+  .week-day-letter { font-size: 9px; color: #444; text-transform: uppercase; }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header>
+  <div class="logo-wrap">
+    <div class="logo-icon">💪</div>
+    <div>
+      <div class="logo-title">MFF</div>
+      <div class="logo-sub">Daily Gym Routine</div>
+    </div>
+  </div>
+  <div class="header-today">
+    <div class="header-today-label">Today</div>
+    <div class="header-today-day" id="header-today-day">—</div>
+  </div>
+</header>
+
+<main>
+  <!-- DAY SELECTOR -->
+  <div class="day-scroll" id="day-scroll"></div>
+
+  <!-- WORKOUT HEADER -->
+  <div class="workout-header">
+    <div class="workout-meta" id="wk-meta">Monday</div>
+    <div class="workout-title-row">
+      <div class="workout-title" id="wk-title">PUSH DAY</div>
+      <div class="workout-count">
+        <div><span class="workout-count-num" id="wk-done-num">0</span><span class="workout-count-denom" id="wk-total-denom">/5</span></div>
+        <div class="workout-count-label">Done</div>
+      </div>
+    </div>
+    <div class="progress-bar"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
+  </div>
+
+  <!-- EXERCISE LIST -->
+  <div class="ex-list" id="ex-list"></div>
+
+  <!-- COMPLETE SECTION -->
+  <div class="complete-section" id="complete-section">
+    <button class="complete-btn" id="complete-btn" disabled>COMPLETE ALL EXERCISES FIRST</button>
+    <div class="complete-banner" id="complete-banner">
+      <div class="trophy">🏆</div>
+      <div class="done-title" id="done-title" style="color:var(--accent)">WORKOUT COMPLETE!</div>
+      <div class="done-sub">Great job today. Rest up and come back stronger.</div>
+    </div>
+  </div>
+
+  <!-- WEEKLY OVERVIEW -->
+  <div class="weekly-section">
+    <div class="weekly-label">Weekly Progress</div>
+    <div class="weekly-grid" id="weekly-grid"></div>
+  </div>
+</main>
+
+<script>
+const DAYS = ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"];
+
+const WORKOUTS = {
+  Monday: {
+    label: "PUSH DAY", color: "#FF4D00",
+    exercises: [
+      { id:"m1", name:"Barbell Bench Press", sets:4, reps:10, muscle:"Chest", vid:"rT7DgCr-3pg", tip:"Keep shoulder blades retracted throughout the movement." },
+      { id:"m2", name:"Overhead Press",       sets:3, reps:10, muscle:"Shoulders", vid:"2yjwXTZQDDI", tip:"Brace your core and avoid arching your lower back." },
+      { id:"m3", name:"Incline Dumbbell Press",sets:3, reps:12, muscle:"Upper Chest", vid:"8iPEnn-ltC8", tip:"Control the descent for maximum muscle activation." },
+      { id:"m4", name:"Tricep Rope Pushdown", sets:3, reps:15, muscle:"Triceps", vid:"vB5OHsJ3EME", tip:"Keep elbows pinned to your sides throughout." },
+      { id:"m5", name:"Lateral Raises",        sets:3, reps:15, muscle:"Side Delts", vid:"3VcKaXpzqRo", tip:"Slight forward lean isolates the lateral head better." },
+    ]
+  },
+  Tuesday: {
+    label: "PULL DAY", color: "#0099FF",
+    exercises: [
+      { id:"t1", name:"Pull-Ups",       sets:4, reps:8,  muscle:"Lats",      vid:"eGo4IYlbE5g", tip:"Full dead hang at the bottom for full range of motion." },
+      { id:"t2", name:"Barbell Row",    sets:4, reps:10, muscle:"Upper Back", vid:"FWJR5Ve8bnQ", tip:"Pull to your lower chest, not your upper abdomen." },
+      { id:"t3", name:"Face Pulls",     sets:3, reps:15, muscle:"Rear Delts", vid:"rep-qVOkqgk",  tip:"Pull to your face with elbows high and flared." },
+      { id:"t4", name:"Hammer Curls",   sets:3, reps:12, muscle:"Biceps",     vid:"zC3nLlEvin4", tip:"Keep wrists neutral; avoid swinging." },
+      { id:"t5", name:"Cable Row",      sets:3, reps:12, muscle:"Mid Back",   vid:"GZbfZ033f74", tip:"Pause and squeeze at the contracted position." },
+    ]
+  },
+  Wednesday: {
+    label: "LEG DAY", color: "#00C853",
+    exercises: [
+      { id:"w1", name:"Back Squat",        sets:4, reps:8,  muscle:"Quads/Glutes", vid:"ultWZbUMPL8", tip:"Keep chest tall and knees tracking over toes." },
+      { id:"w2", name:"Romanian Deadlift", sets:3, reps:10, muscle:"Hamstrings",   vid:"jEy_czb3RKA", tip:"Push hips back rather than bending at the waist." },
+      { id:"w3", name:"Leg Press",         sets:3, reps:12, muscle:"Quads",        vid:"IZxyjW7MPJQ", tip:"Never lock out knees at the top of the movement." },
+      { id:"w4", name:"Walking Lunges",    sets:3, reps:12, muscle:"Glutes",       vid:"L8fvypPrzzs", tip:"Keep your torso upright and take long strides." },
+      { id:"w5", name:"Calf Raises",       sets:4, reps:20, muscle:"Calves",       vid:"c5Kv6-fnTj8", tip:"Full stretch at bottom and pause at the top." },
+    ]
+  },
+  Thursday: {
+    label: "REST & CORE", color: "#FFB300",
+    exercises: [
+      { id:"th1", name:"Plank",              sets:3, reps:"60s", muscle:"Core",       vid:"pSHjTRCQxIw", tip:"Maintain a straight line from head to heels." },
+      { id:"th2", name:"Hanging Leg Raises", sets:3, reps:12,    muscle:"Lower Abs",  vid:"hdng3Nm1x_E", tip:"Avoid swinging; control the movement." },
+      { id:"th3", name:"Cable Crunch",       sets:3, reps:15,    muscle:"Abs",        vid:"2fbujeH3F0E", tip:"Crunch to your pelvis, not just pulling down." },
+      { id:"th4", name:"Russian Twists",     sets:3, reps:20,    muscle:"Obliques",   vid:"wkD8rjkodUI", tip:"Rotate from your torso, not just arms." },
+    ]
+  },
+  Friday: {
+    label: "PUSH DAY II", color: "#D500F9",
+    exercises: [
+      { id:"f1", name:"DB Shoulder Press", sets:4, reps:10, muscle:"Shoulders", vid:"qEwKCR5JCog", tip:"Fully extend arms overhead without locking elbows." },
+      { id:"f2", name:"Dips",              sets:3, reps:12, muscle:"Chest/Tris", vid:"yew6JFovIFs", tip:"Lean forward slightly to target the chest more." },
+      { id:"f3", name:"Cable Fly",         sets:3, reps:15, muscle:"Chest",      vid:"Iwe6AmxVf7o", tip:"Slight bend in elbows; think of hugging a tree." },
+      { id:"f4", name:"Skull Crushers",    sets:3, reps:12, muscle:"Triceps",    vid:"d_KZxkY_0cM", tip:"Only the forearms should move; lock upper arms." },
+      { id:"f5", name:"Arnold Press",      sets:3, reps:12, muscle:"Full Delts", vid:"3ml7BH7mNwQ", tip:"Rotate palms outward as you press upward." },
+    ]
+  },
+  Saturday: {
+    label: "PULL DAY II", color: "#00E5FF",
+    exercises: [
+      { id:"s1", name:"Deadlift",        sets:4, reps:6,  muscle:"Full Back", vid:"op9kVnSso6Q", tip:"Bar stays over mid-foot; push the floor away." },
+      { id:"s2", name:"Lat Pulldown",    sets:4, reps:12, muscle:"Lats",      vid:"CAwf7n6Luuc", tip:"Pull to your upper chest with a slight lean back." },
+      { id:"s3", name:"Seated Row",      sets:3, reps:12, muscle:"Mid Back",  vid:"UCXxvVItLoM", tip:"Sit tall and drive elbows behind your torso." },
+      { id:"s4", name:"Preacher Curl",   sets:3, reps:12, muscle:"Biceps",    vid:"fIWP-FRFNU0", tip:"Full extension at the bottom; slow negative." },
+    ]
+  },
+  Sunday: {
+    label: "ACTIVE REST", color: "#78909C",
+    exercises: [
+      { id:"su1", name:"Full Body Stretch", sets:1, reps:"10min", muscle:"Mobility",  vid:"L_xrDAtykMI", tip:"Hold each stretch for at least 30 seconds." },
+      { id:"su2", name:"Foam Rolling",      sets:1, reps:"10min", muscle:"Recovery",  vid:"EvDW2cFYW0A", tip:"Pause on tender spots for 20–30 seconds." },
+    ]
+  }
+};
+
+// State
+const state = {
+  activeDay: null,
+  sets: {},       // key: "day-exId-setIdx" → bool
+  exDone: {},     // key: "day-exId" → bool
+  wkDone: {},     // key: "day" → bool
+  openVideo: null
+};
+
+// Today detection
+const todayIdx = new Date().getDay();
+const todayName = DAYS[todayIdx === 0 ? 6 : todayIdx - 1];
+document.getElementById("header-today-day").textContent = todayName;
+document.getElementById("header-today-day").style.color = WORKOUTS[todayName].color;
+
+// ── BUILD DAY SELECTOR ──
+function buildDaySelector() {
+  const el = document.getElementById("day-scroll");
+  el.innerHTML = "";
+  DAYS.forEach(day => {
+    const btn = document.createElement("button");
+    btn.className = "day-btn" + (day === state.activeDay ? " active" : "") + (state.wkDone[day] ? " workout-done" : "");
+    btn.dataset.day = day;
+    btn.style.setProperty("--accent", WORKOUTS[day].color);
+    if (day === state.activeDay) btn.style.borderColor = WORKOUTS[day].color;
+    btn.innerHTML = `
+      <div class="done-dot">✓</div>
+      <div>${day.slice(0,3).toUpperCase()}</div>
+      <div class="day-sublabel">${WORKOUTS[day].label.split(" ")[0]}</div>`;
+    btn.addEventListener("click", () => setActiveDay(day));
+    el.appendChild(btn);
+  });
+}
+
+// ── BUILD WORKOUT ──
+function buildWorkout() {
+  const day = state.activeDay;
+  const wk = WORKOUTS[day];
+  const c = wk.color;
+
+  document.getElementById("wk-meta").textContent = day;
+  document.getElementById("wk-title").textContent = wk.label;
+  document.getElementById("progress-fill").style.background = `linear-gradient(90deg, ${c}, ${c}99)`;
+  document.getElementById("complete-btn").style.background = c;
+  document.getElementById("done-title").style.color = c;
+  document.getElementById("header-today-day").style.color = WORKOUTS[todayName].color;
+
+  buildExercises();
+  updateProgress();
+  buildWeekly();
+}
+
+function buildExercises() {
+  const day = state.activeDay;
+  const wk = WORKOUTS[day];
+  const c = wk.color;
+  const el = document.getElementById("ex-list");
+  el.innerHTML = "";
+
+  wk.exercises.forEach(ex => {
+    const exKey = `${day}-${ex.id}`;
+    const isDone = !!state.exDone[exKey];
+    const completedSets = countSets(ex);
+    const card = document.createElement("div");
+    card.className = "ex-card" + (isDone ? " done" : "");
+    card.id = `card-${ex.id}`;
+    card.innerHTML = `
+      <div class="ex-card-top">
+        <div class="ex-info">
+          <span class="ex-muscle-tag" style="background:${c}22;color:${c}">${ex.muscle}</span>
+          <div class="ex-name">${ex.name}</div>
+          <div class="ex-sets-info">${ex.sets} sets × ${ex.reps} ${typeof ex.reps === 'string' ? '' : 'reps'}</div>
+        </div>
+        <div class="ex-actions">
+          <button class="icon-btn vid-btn ${state.openVideo === ex.id ? 'active' : ''}"
+            id="vidbtn-${ex.id}"
+            style="${state.openVideo === ex.id ? `background:${c};` : ''}"
+            data-vid="${ex.vid}" data-id="${ex.id}" title="Watch demo">▶</button>
+          <button class="icon-btn check-btn ${isDone ? 'done' : ''}"
+            id="chk-${ex.id}"
+            style="${isDone ? `background:${c};` : ''}"
+            data-id="${ex.id}" title="Mark done">✓</button>
+        </div>
+      </div>
+      <div class="video-wrap ${state.openVideo === ex.id ? 'open' : ''}" id="vid-${ex.id}">
+        ${state.openVideo === ex.id ? `<iframe src="https://www.youtube.com/embed/${ex.vid}?autoplay=1&mute=1" allowfullscreen allow="autoplay; encrypted-media"></iframe>` : ''}
+      </div>
+      <div class="ex-tip" style="border-left-color:${c}55">💡 ${ex.tip}</div>
+      <div class="set-label">Sets — <span id="setcount-${ex.id}" style="color:${completedSets === ex.sets ? c : '#666'}">${completedSets}/${ex.sets} done</span></div>
+      <div class="set-dots" id="setdots-${ex.id}"></div>
+    `;
+    el.appendChild(card);
+    buildSetDots(ex, c);
+
+    // Video toggle
+    card.querySelector(`#vidbtn-${ex.id}`).addEventListener("click", () => toggleVideo(ex));
+    // Check toggle
+    card.querySelector(`#chk-${ex.id}`).addEventListener("click", () => toggleExDone(ex));
+  });
+}
+
+function buildSetDots(ex, c) {
+  const day = state.activeDay;
+  const wrap = document.getElementById(`setdots-${ex.id}`);
+  if (!wrap) return;
+  wrap.innerHTML = "";
+  for (let i = 0; i < ex.sets; i++) {
+    const key = `${day}-${ex.id}-${i}`;
+    const done = !!state.sets[key];
+    const dot = document.createElement("button");
+    dot.className = "set-dot" + (done ? " done" : "");
+    dot.style.background = done ? c : "";
+    dot.style.borderColor = done ? c : "";
+    dot.innerHTML = `<span>${i+1}</span><span class="check-mark">✓</span>`;
+    dot.addEventListener("click", () => toggleSet(ex, i, c));
+    wrap.appendChild(dot);
+  }
+}
+
+// ── TOGGLE HANDLERS ──
+function toggleVideo(ex) {
+  const wasOpen = state.openVideo === ex.id;
+  state.openVideo = wasOpen ? null : ex.id;
+  const vidWrap = document.getElementById(`vid-${ex.id}`);
+  const vidBtn  = document.getElementById(`vidbtn-${ex.id}`);
+  const c = WORKOUTS[state.activeDay].color;
+  if (wasOpen) {
+    vidWrap.classList.remove("open");
+    vidWrap.innerHTML = "";
+    vidBtn.classList.remove("active");
+    vidBtn.style.background = "";
+    vidBtn.style.color = "";
+  } else {
+    // close other open video
+    document.querySelectorAll(".video-wrap.open").forEach(v => { v.classList.remove("open"); v.innerHTML = ""; });
+    document.querySelectorAll(".vid-btn.active").forEach(b => { b.classList.remove("active"); b.style.background=""; b.style.color=""; });
+    vidWrap.classList.add("open");
+    vidWrap.innerHTML = `<iframe src="https://www.youtube.com/embed/${ex.vid}?autoplay=1&mute=1" allowfullscreen allow="autoplay; encrypted-media"></iframe>`;
+    vidBtn.classList.add("active");
+    vidBtn.style.background = c;
+    vidBtn.style.color = "#000";
+  }
+}
+
+function toggleSet(ex, idx, c) {
+  const day = state.activeDay;
+  const key = `${day}-${ex.id}-${idx}`;
+  state.sets[key] = !state.sets[key];
+  buildSetDots(ex, c);
+  const completed = countSets(ex);
+  const span = document.getElementById(`setcount-${ex.id}`);
+  if (span) {
+    span.textContent = `${completed}/${ex.sets} done`;
+    span.style.color = completed === ex.sets ? c : "#666";
+  }
+  updateProgress();
+}
+
+function toggleExDone(ex) {
+  const day = state.activeDay;
+  const exKey = `${day}-${ex.id}`;
+  state.exDone[exKey] = !state.exDone[exKey];
+  const isDone = state.exDone[exKey];
+  const c = WORKOUTS[day].color;
+  const card = document.getElementById(`card-${ex.id}`);
+  const chk  = document.getElementById(`chk-${ex.id}`);
+  const name = card.querySelector(".ex-name");
+  if (isDone) {
+    card.classList.add("done");
+    chk.classList.add("done");
+    chk.style.background = c;
+    name.style.color = c;
+  } else {
+    card.classList.remove("done");
+    chk.classList.remove("done");
+    chk.style.background = "";
+    name.style.color = "";
+  }
+  updateProgress();
+}
+
+function countSets(ex) {
+  const day = state.activeDay;
+  let n = 0;
+  for (let i = 0; i < ex.sets; i++) if (state.sets[`${day}-${ex.id}-${i}`]) n++;
+  return n;
+}
+
+// ── PROGRESS ──
+function updateProgress() {
+  const day = state.activeDay;
+  const wk = WORKOUTS[day];
+  const total = wk.exercises.length;
+  const done = wk.exercises.filter(ex => !!state.exDone[`${day}-${ex.id}`]).length;
+  const pct = total ? (done / total) * 100 : 0;
+  document.getElementById("progress-fill").style.width = pct + "%";
+  document.getElementById("wk-done-num").textContent = done;
+  document.getElementById("wk-total-denom").textContent = "/" + total;
+
+  const btn = document.getElementById("complete-btn");
+  const banner = document.getElementById("complete-banner");
+  const c = wk.color;
+
+  if (state.wkDone[day]) {
+    btn.style.display = "none";
+    banner.classList.add("show");
+    return;
+  }
+  btn.style.display = "block";
+  banner.classList.remove("show");
+  if (done === total) {
+    btn.disabled = false;
+    btn.style.background = `linear-gradient(135deg, ${c}, ${c}CC)`;
+    btn.style.color = "#000";
+    btn.textContent = "✓ MARK WORKOUT COMPLETE";
+  } else {
+    btn.disabled = true;
+    btn.style.background = "";
+    btn.style.color = "#333";
+    btn.textContent = `COMPLETE ALL ${total} EXERCISES FIRST`;
+  }
+}
+
+function markDone() {
+  const day = state.activeDay;
+  state.wkDone[day] = true;
+  document.getElementById("complete-btn").style.display = "none";
+  document.getElementById("complete-banner").classList.add("show");
+  buildDaySelector();
+  buildWeekly();
+}
+
+// ── WEEKLY ──
+function buildWeekly() {
+  const grid = document.getElementById("weekly-grid");
+  grid.innerHTML = "";
+  DAYS.forEach(day => {
+    const c = WORKOUTS[day].color;
+    const isDone = !!state.wkDone[day];
+    const isToday = day === todayName;
+    const isActive = day === state.activeDay;
+    const cell = document.createElement("div");
+    cell.className = "week-cell";
+    const bar = document.createElement("div");
+    bar.className = "week-bar" + (isToday ? " is-today" : "") + (isDone ? " is-done" : "");
+    if (isDone) { bar.style.background = c; bar.style.color = "#000"; bar.textContent = "✓"; }
+    else if (isActive) { bar.style.background = `${c}22`; bar.style.color = c; bar.style.borderColor = `${c}66`; bar.textContent = "→"; }
+    else { bar.textContent = ""; }
+    const label = document.createElement("div");
+    label.className = "week-day-letter";
+    label.textContent = day[0];
+    cell.appendChild(bar);
+    cell.appendChild(label);
+    grid.appendChild(cell);
+  });
+}
+
+// ── SET ACTIVE DAY ──
+function setActiveDay(day) {
+  state.activeDay = day;
+  state.openVideo = null;
+  buildDaySelector();
+  buildWorkout();
+}
+
+// ── COMPLETE BTN LISTENER ──
+document.getElementById("complete-btn").addEventListener("click", markDone);
+
+// ── INIT ──
+setActiveDay(todayName);
+</script>
+</body>
+</html>

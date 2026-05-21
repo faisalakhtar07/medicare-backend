@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>TBH — The Big House Gym</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="icon" type="image/x-icon" href="T B H.png">
+    
+    <!-- Google Fonts Optimized -->
+    <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800;900&family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- External CSS Link -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- TOAST NOTIFICATION -->
+    <div class="toast" id="toast"></div>
+
+    <!-- AUTHENTICATION SCREEN (LOGIN) -->
+    <div class="auth-container" id="auth-screen">
+        <div class="auth-logo">TBH<span>.</span></div>
+        <div class="auth-subtitle">THE BIG HOUSE GYM MEMBER PORTAL</div>
+        
+        <!-- STEP 1: Name and Mobile Number Input -->
+        <div id="step-phone">
+            <div class="input-group">
+                <label for="name-input">Full Name</label>
+                <input type="text" id="name-input" class="input-field" placeholder="Enter your name (e.g. Faisal)" autocomplete="off">
+            </div>
+
+            <div class="input-group">
+                <label for="phone-input">Mobile Number</label>
+                <input type="tel" id="phone-input" class="input-field" placeholder="Enter 10 digit number" maxlength="10" autocomplete="off">
+            </div>
+            
+            <!-- Recaptcha Container required by Firebase -->
+            <div id="recaptcha-container" style="margin-bottom: 15px;"></div>
+            
+            <button class="btn btn-gold" id="send-otp-btn" onclick="sendOTP()">Send OTP</button>
+        </div>
+
+        <!-- STEP 2: OTP Verification Input (Initially Hidden) -->
+        <div id="step-otp" class="hidden">
+            <div class="input-group">
+                <label for="otp-input">Enter OTP</label>
+                <input type="text" id="otp-input" class="input-field" placeholder="Enter 6-digit OTP" maxlength="6" autocomplete="off">
+            </div>
+            
+            <button class="btn btn-gold" onclick="verifyOTP()">Verify & Login</button>
+        </div>
+    </div>
+
+    <!-- MAIN APP WRAPPER (Hidden until Login Successful) -->
+    <div id="app-wrapper" style="display: none;">
+        
+        <!-- NAVIGATION BAR -->
+        <nav>
+            <div class="nav-brand">
+                <div class="nav-logo">TBH</div>
+                <div>
+                    <div class="nav-name">TBH</div>
+                    <div class="nav-sub" id="header-today-day">Dashboard</div>
+                </div>
+            </div>
+            <div class="nav-tabs">
+                <button class="nav-tab active" onclick="showPage('dash', this)">Dash</button>
+                <button class="nav-tab" onclick="showPage('workout', this)">Workout</button>
+                <button class="nav-tab" onclick="window.location.href='workout.html'">Workout Pro</button>
+                <button class="nav-tab" onclick="showPage('history', this)">History</button>
+            </div>
+        </nav>
+
+        <main class="container">
+            <!-- PAGE: DASHBOARD -->
+            <div class="page active" id="page-dash">
+                <!-- Hero Section -->
+                <div class="dash-hero">
+                    <div class="dash-greeting">Welcome back,</div>
+                    <div class="dash-name" id="user-display">MEMBER</div>
+                    <div class="dash-day" id="dash-day-label">Loading…</div>
+                    <div class="dash-stats">
+                        <div class="stat-box">
+                            <div class="stat-num" id="stat-streak">0🔥</div>
+                            <div class="stat-lbl">Day Streak</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-num" id="stat-week">0/7</div>
+                            <div class="stat-lbl">This Week</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-num" id="stat-total">0</div>
+                            <div class="stat-lbl">Total Sessions</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Streak Banner -->
+                <div class="streak-badge">🔥 <span id="streak-text">Keep your streak alive — work out today!</span></div>
+
+                <!-- Monthly Consistency -->
+                <div class="section-title">Monthly Consistency</div>
+                <div class="card" style="padding:16px">
+                    <div class="cal-grid" id="cal-labels"></div>
+                    <div class="cal-grid" id="cal-grid"></div>
+                </div>
+
+                <!-- Peak Traffic Chart -->
+                <div class="section-title">Peak Hours Today</div>
+                <div class="card">
+                    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px">
+                        <div>
+                            <div style="font-size:15px;font-weight:600">Gym Traffic Forecast</div>
+                            <div style="font-size:12px;color:var(--muted);margin-top:2px">Best time to visit: <span style="color:var(--green);font-weight:600" id="best-time">12:00 PM</span></div>
+                        </div>
+                        <div style="text-align:right">
+                            <div id="crowd-now" style="font-size:12px;font-weight:600">Moderate</div>
+                            <div style="font-size:10px;color:var(--muted)">Right now</div>
+                        </div>
+                    </div>
+                    <div class="peak-chart" id="peak-chart"></div>
+                    <div style="display:flex;gap:16px;margin-top:10px">
+                        <div style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--muted)"><span style="width:10px;height:10px;border-radius:2px;background:rgba(24,201,100,.5);display:inline-block"></span>Quiet</div>
+                        <div style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--muted)"><span style="width:10px;height:10px;border-radius:2px;background:rgba(232,160,32,.6);display:inline-block"></span>Moderate</div>
+                        <div style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--muted)"><span style="width:10px;height:10px;border-radius:2px;background:rgba(224,48,48,.6);display:inline-block"></span>Busy</div>
+                    </div>
+                </div>
+
+                <!-- Quick Start Card -->
+                <div class="section-title">Today's Plan</div>
+                <div class="card" style="display:flex;align-items:center;justify-content:space-between;gap:16px">
+                    <div>
+                        <div style="font-size:15px;font-weight:700;color:var(--gold)" id="dash-today-label">—</div>
+                        <div style="font-size:12px;color:var(--muted);margin-top:2px" id="dash-today-excount">—</div>
+                    </div>
+                    <button class="btn btn-gold" style="width:auto;" onclick="showPage('workout', document.querySelectorAll('.nav-tab')[1])">Start Workout →</button>
+                </div>
+            </div>
+
+            <!-- PAGE: WORKOUT TRACKER -->
+            <div class="page" id="page-workout">
+                <!-- Day Selection Pills -->
+                <div class="day-scroll" id="day-scroll"></div>
+
+                <!-- Workout Progress Header -->
+                <div class="wk-header">
+                    <div style="font-size:11px;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-bottom:3px" id="wk-meta">Targeting Progress</div>
+                    <div class="wk-label-row">
+                        <div class="wk-title" id="wk-title">Select a Day</div>
+                        <div class="wk-prog-text">
+                            <div><span class="wk-prog-num" id="wk-done-n">0</span><span class="wk-prog-tot" id="wk-tot-n">/0</span></div>
+                            <div class="wk-prog-lbl">Done</div>
+                        </div>
+                    </div>
+                    <div class="prog-bar"><div class="prog-fill" id="prog-fill" style="width:0%"></div></div>
+                </div>
+
+                <!-- Exercises Dynamic List -->
+                <div id="ex-list"></div>
+
+                <!-- Global Rest Timer Component -->
+                <div class="section-title" style="margin-top:20px">Rest Timer</div>
+                <div class="card" style="padding:14px 16px">
+                    <div style="background:transparent;padding:0;display:flex;align-items:center;justify-content:space-between;width:100%;">
+                        <div class="timer-display" id="timer-display">00:00</div>
+                        <div style="display:flex;gap:8px;">
+                            <button class="btn" style="background:var(--surface2);color:var(--text);padding:8px 12px;font-size:12px;width:auto;" onclick="startTimer(30)">+30s</button>
+                            <button class="btn" style="background:var(--surface2);color:var(--text);padding:8px 12px;font-size:12px;width:auto;" onclick="startTimer(60)">+60s</button>
+                            <button class="btn" style="background:var(--red);color:#fff;padding:8px 12px;font-size:12px;width:auto;" onclick="resetTimer()">Reset</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Complete Workout Button -->
+                <button class="btn btn-gold" style="width:100%;margin-top:20px;padding:14px;font-weight:700;" onclick="completeWorkout()">Log & Finish Workout</button>
+            </div>
+
+            <!-- PAGE: HISTORY LOGS -->
+            <div class="page" id="page-history">
+                <div class="section-title">Workout Logs</div>
+                <div id="history-container"></div>
+            </div>
+        </main>
+    </div>
+
+    <!-- External JS Module Link (For Firebase Integration) -->
+    <script type="module" src="script.js"></script>
+</body>
+</html>
