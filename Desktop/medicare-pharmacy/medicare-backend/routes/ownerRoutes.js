@@ -59,6 +59,12 @@ router.put('/orders/:id/assign', async (req, res) => {
   if (order.status !== 'Delivered' && order.status !== 'Cancelled') {
     order.status = 'Out for Delivery'
   }
+  // Generate a fresh 4-digit delivery OTP every time an order goes out —
+  // the customer sees it in-app; the rider must collect it from the
+  // customer and enter it to mark the order Delivered.
+  if (!order.deliveryOtp) {
+    order.deliveryOtp = String(Math.floor(1000 + Math.random() * 9000))
+  }
   await order.save()
   await notifyOrderStatus(order.user, order)
   await notifyDeliveryAssignment(deliveryBoyId, order)

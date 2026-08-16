@@ -24,14 +24,27 @@ router.get('/orders/:id', async (req, res) => {
   res.json(order)
 })
 
-// PUT /api/delivery/orders/:id/status — delivery staff can only move Out for Delivery -> Delivered
+// PUT /api/delivery/orders/:id/status — delivery staff can only move Out for Delivery -> Delivered.
+// Marking Delivered REQUIRES the correct OTP, collected verbally from the customer,
+// which proves the parcel reached the right person.
 router.put('/orders/:id/status', async (req, res) => {
-  const { status } = req.body
+  const { status, otp } = req.body
   if (!DELIVERY_ALLOWED_STATUSES.includes(status)) {
     return res.status(400).json({ message: `Delivery staff can only set status to: ${DELIVERY_ALLOWED_STATUSES.join(' or ')}` })
   }
   const order = await Order.findOne({ _id: req.params.id, assignedTo: req.user._id })
   if (!order) return res.status(404).json({ message: 'Order not found or not assigned to you' })
+
+  if (status === 'Delivered') {
+    if (!order.deliveryOtp) {
+      return res.status(400).json({ message: 'No OTP was generated for this order — contact the owner.' })
+    }
+    if (!otp || String(otp).trim() !== order.deliveryOtp) {
+      return res.status(400).json({ message: 'Incorrect OTP. Ask the customer to check their app for the correct code.' })
+    }
+    order.deliveryVerifiedAt = new Date()
+  }
+
   order.status = status
   await order.save()
   await notifyOrderStatus(order.user, order)

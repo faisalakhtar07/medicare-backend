@@ -25,7 +25,7 @@ router.get('/key', (req, res) => {
   res.json({ configured: true, keyId: process.env.RAZORPAY_KEY_ID })
 })
 
-// POST /api/payments/create-order — creates a Razorpay order for a MEDICARE order that already exists in our DB
+// POST /api/payments/create-order — creates a Razorpay order for a POPULAR MEDI order that already exists in our DB
 router.post('/create-order', protect, async (req, res) => {
   try {
     const razorpay = getRazorpay()

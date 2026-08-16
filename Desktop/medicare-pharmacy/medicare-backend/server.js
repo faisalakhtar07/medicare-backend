@@ -22,7 +22,7 @@ app.use(cors())
 app.use(express.json())
 app.use('/uploads', express.static(path.resolve('uploads')))
 
-app.get('/', (req, res) => res.send('MEDICARE API is running ✅'))
+app.get('/', (req, res) => res.send('POPULAR MEDI API is running ✅'))
 
 app.use('/api/auth', authRoutes)
 app.use('/api/products', productRoutes)
@@ -42,5 +42,5 @@ app.use((err, req, res, next) => {
   res.status(500).json({ message: err.message || 'Server error' })
 })
 
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`🚀 MEDICARE API running on http://localhost:${PORT}`))
+const PORT = process.env.PORT || 5000
+app.listen(PORT, () => console.log(`🚀 POPULAR MEDI API running on http://localhost:${PORT}`))

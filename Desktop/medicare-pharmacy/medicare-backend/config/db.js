@@ -1,4 +1,11 @@
 import mongoose from 'mongoose'
+import dns from 'dns'
+
+// Force Node to resolve DNS (including the mongodb+srv:// lookup) via Google's
+// public DNS. Some ISPs/routers block or mishandle SRV record lookups even
+// when Windows network settings say to use 8.8.8.8 — setting it here, inside
+// Node itself, sidesteps that.
+dns.setServers(['8.8.8.8', '8.8.4.4'])
 
 export default async function connectDB() {
   try {

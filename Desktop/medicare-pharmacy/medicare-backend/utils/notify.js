@@ -5,7 +5,11 @@ const statusMessages = {
   Pending: { title: 'Order Placed', message: (n) => `Your order ${n} has been placed and is awaiting confirmation.`, type: 'order_placed' },
   Confirmed: { title: 'Order Confirmed', message: (n) => `Your order ${n} has been confirmed by the pharmacy.`, type: 'order_status' },
   Preparing: { title: 'Order Preparing', message: (n) => `Your order ${n} is being prepared.`, type: 'order_status' },
-  'Out for Delivery': { title: 'Out for Delivery', message: (n) => `Your order ${n} is out for delivery.`, type: 'order_status' },
+  'Out for Delivery': {
+    title: 'Out for Delivery',
+    message: (n, order) => `Your order ${n} is out for delivery.${order?.deliveryOtp ? ` Share this OTP with the rider only when your order arrives: ${order.deliveryOtp}` : ''}`,
+    type: 'order_status',
+  },
   Delivered: { title: 'Order Delivered', message: (n) => `Your order ${n} has been delivered. Enjoy your day!`, type: 'order_status' },
   Cancelled: { title: 'Order Cancelled', message: (n) => `Your order ${n} has been cancelled.`, type: 'order_cancelled' },
 }
@@ -16,7 +20,7 @@ export async function notifyOrderStatus(userId, order) {
   await Notification.create({
     user: userId,
     title: entry.title,
-    message: entry.message(order.orderNumber),
+    message: entry.message(order.orderNumber, order),
     type: entry.type,
     relatedOrder: order._id,
   })
